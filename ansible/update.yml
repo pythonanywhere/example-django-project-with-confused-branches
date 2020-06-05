@@ -1,0 +1,28 @@
+---
+- hosts: pythonanywhere
+  vars:
+    home: /home/newpythonanywhereuser/
+    app_path: "{{ home }}newpythonanywhereuser.pythonanywhere.com/"
+    virtualenv: "{{ home }}.virtualenvs/newpythonanywhereuser.pythonanywhere.com"
+  vars_files:
+    vars.yml
+  tasks:
+  - name: update code
+    git:
+      repo: 'https://github.com/pythonanywhere/example-django-project.git'
+      dest: "{{ app_path }}"
+      update: yes
+  - name: update requirements
+    pip:
+      requirements: "{{ app_path }}requirements.txt"
+      virtualenv: "{{ virtualenv }}"
+  - name: apply django migrations
+    django_manage:
+      command: migrate
+      app_path: "{{ app_path }}"
+      settings: myproject.settings
+      virtualenv: "{{ virtualenv }}"
+  - name: reload web app
+    shell: "{{ virtualenv }}/bin/pa_reload_webapp.py newpythonanywhereuser.pythonanywhere.com"
+    environment:
+      API_TOKEN: "{{ api_token }}"
